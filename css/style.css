@@ -99,3 +99,4 @@ td.tie-opts .opt { margin: 0; padding: 4px 8px; }
 .opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
 .opts-grid .opt { margin: 1px 0; }
 .opts-grid .inline-text { min-width: 9em; width: 9em; }
+input.amount-input { width: 7em; font-size: 1.6em; text-align: center; font-weight: 600; padding: 6px; }

@@ -152,6 +152,7 @@
         <h2>Researcher setup: network task</h2>
         <p class="small">Enter the participant's study code (the same code used on their questionnaires and the decision task).
         Never enter a name here.</p>
+        <p class="small"><a href="analyze.html" target="_blank" rel="noopener">Analyse collected data (tables + network diagrams) →</a></p>
         <div class="q"><label class="q-label" for="pid">Participant code</label>
           <input type="text" id="pid" name="pid" value="${esc(url.get("pid") || "")}" spellcheck="false" autocomplete="off"></div>
         <div class="q"><label class="q-label" for="pid2">Type the code again</label>

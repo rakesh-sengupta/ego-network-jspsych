@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Ego-network analysis</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { margin: 0; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+    .drop { border: 2px dashed var(--line); border-radius: 12px; padding: 26px; text-align: center; background: #fff; }
+    .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+    table.stats { border-collapse: collapse; font-size: 0.9em; background: #fff; }
+    table.stats th, table.stats td { border-bottom: 1px solid var(--line); padding: 5px 12px; text-align: right; }
+    table.stats th:first-child, table.stats td:first-child { text-align: left; }
+    table.stats th { font-weight: 600; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+    .card svg { width: 100%; height: auto; display: block; }
+    .card .small a { margin-right: 10px; }
+    #log { white-space: pre-wrap; font-size: 0.85em; color: var(--warn); }
+    .hidden { display: none; }
+  </style>
+  <script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h2>Ego-network analysis</h2>
+  <p class="small">Choose the <code>egonet_*.json</code> files saved by the task. Everything happens in this browser; no file is uploaded anywhere.
+  You get the three tables (Table A <code>alters.csv</code>, Table B <code>ties.csv</code>, <code>ego_summary.csv</code>), one network
+  diagram per participant (SVG + PNG), and an overview sheet, all in one zip.</p>
+
+  <div class="drop" id="drop">
+    <p><b>Drop the JSON files here</b> or</p>
+    <input type="file" id="files" accept=".json,application/json" multiple>
+  </div>
+  <div class="row">
+    <label class="small"><input type="checkbox" id="incTest"> include test-mode files (<code>?test=1</code>)</label>
+    <button class="jspsych-btn btn-primary" id="dlAll" disabled>Download tables + diagrams (.zip)</button>
+  </div>
+  <div id="log"></div>
+
+  <div id="results" class="hidden">
+    <h3>Summary</h3>
+    <div id="stats"></div>
+    <h3>Networks</h3>
+    <p class="small">Line thickness from you to each person = closeness (1–5); dashed = closeness not answered.
+      Lines between people: solid = know each other, dashed = not sure.
+      Dotted lines from the AI node = "talked something over with an AI chatbot instead of this person".
+      Hover a node for details.</p>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+<script src="js/analyze.js"></script>
+</body>
+</html>

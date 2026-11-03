@@ -81,13 +81,29 @@ trials   the raw jsPsych record (already coded; no names)
 `name_flag_ai_keyword` is true when the *typed name* looked like an AI product (ChatGPT, Gemini, "bot", …). It is a flag only,
 because the name itself is not kept, and it tells you when a participant listed an AI as one of their "people" (deck slide 25).
 
-### Build the analysis tables
+### Analyse: no installation needed
+
+Open **`analyze.html`** (or click *Analyse collected data* on the researcher setup screen), then drop in or choose the
+`egonet_*.json` files. Everything runs in the browser and nothing is uploaded. The page shows:
+
+- a **summary table** (n, mean, SD, median, range) for size, density, proportion family, closeness, contact, strong ties and AI use;
+- the **checks the deck asks for**: size distribution, how many have density = 1 (ceiling), how often the 6-box cap was hit, and how many
+  used an AI instead of a named person;
+- **one network diagram per participant**. Node colour = family / partner, friends & peers / other; spoke thickness = closeness;
+  solid or dashed lines = the two people know each other / not sure; a dashed **AI** node, with dotted lines to the people the AI stood in for.
+  Hover a node for its details.
+
+**Download tables + diagrams (.zip)** gives `alters.csv`, `ties.csv`, `ego_summary.csv`, every diagram as SVG (for papers) and PNG
+(for slides), and `all_networks.svg/.png`, an overview sheet of all participants. Tick *include test-mode files* to analyse pilot data.
+Diagrams show codes (A1…) only; no names exist in the data.
+
+### Or with Python
 
 ```bash
 python analysis/build_network_tables.py path/to/data_folder -o path/to/output_folder
 ```
 
-Standard library only. Writes:
+Standard library only, and it produces the same three tables as the browser page (checked to match value for value). Writes:
 
 - `alters.csv` (Table A) and `ties.csv` (Table B), the layout of deck slide 11
 - `ego_summary.csv`, one row per participant, with the four network measures of the deck:
@@ -119,9 +135,11 @@ and a name typed inside another answer): no name survived into any saved file.
 ## Files
 
 ```
-index.html                       entry point
+index.html                       entry point (the task)
+analyze.html                     analysis page: tables + network diagrams, zip download
 config.js                        ← wording, answer options, slots
 js/experiment.js                 the task timeline + anonymisation
+js/analyze.js                    analysis page logic (tables, diagrams, zip; no libraries)
 js/plugin-form-page.js           small custom jsPsych plugin (forms with hard/soft checks; never records page HTML)
 css/style.css
 lib/jspsych/                     jsPsych 8.3.0 + plugins, vendored for offline use (MIT licence)
