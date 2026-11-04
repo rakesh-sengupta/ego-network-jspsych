@@ -47,7 +47,7 @@
   const log = (msg) => ($("log").textContent += msg + "\n");
 
   /* ---------------- tables (mirror of build_network_tables.py) ------------- */
-  function buildTables(files, includeTest) {
+  function buildTables(files, includeTest, includePilot) {
     const alterRows = [], tieRows = [], egoRows = [], diagrams = [];
     const relCats = new Set();
     const seen = {};
@@ -58,8 +58,13 @@
         return;
       }
       const meta = d.meta, ego = d.ego, alters = d.alters, ties = d.ties || [];
-      if (meta.test_mode && !includeTest) {
+      const stype = meta.session_type || (meta.test_mode ? "test" : "real");
+      if ((meta.test_mode || stype === "test") && !includeTest) {
         log(`skip (test mode): ${fileName}`);
+        return;
+      }
+      if (stype === "pilot" && !includePilot) {
+        log(`skip (pilot): ${fileName}`);
         return;
       }
       if (meta.anonymisation_check !== "passed")
@@ -100,6 +105,7 @@
 
       egoRows.push({
         participant_id: pid,
+        session_type: stype,
         file: fileName,
         size: n,
         all_slots_used: ego.all_slots_used,
@@ -125,6 +131,8 @@
         ai_instead_n: blank(ego.ai_instead_n),
         n_alters_named_like_ai: alters.filter((a) => a.name_flag_ai_keyword).length,
         n_alters_rel_ai: alters.filter((a) => a.relationship === "ai").length,
+        session_duration_s: blank(meta.session_duration_s),
+        _pf: d.pilot_feedback || {},
         _rels: rels,
       });
 
@@ -136,6 +144,9 @@
       const rels = r._rels;
       delete r._rels;
       cats.forEach((c) => (r["n_rel_" + c] = rels[c] || 0));
+      const pf = r._pf;
+      delete r._pf;
+      Object.keys(pf).forEach((k) => (r[k] = blank(pf[k])));
     });
 
     const dups = Object.keys(seen).filter((p) => seen[p] > 1);
@@ -145,7 +156,10 @@
 
   /* ---------------- CSV (same conventions as Python's csv module) ---------- */
   function toCSV(rows, cols) {
-    cols = cols || (rows.length ? Object.keys(rows[0]) : []);
+    if (!cols) {
+      cols = [];
+      rows.forEach((r) => Object.keys(r).forEach((k) => !cols.includes(k) && cols.push(k)));
+    }
     const cell = (v) => {
       if (v === true) v = "True";
       else if (v === false) v = "False";
@@ -374,6 +388,17 @@
       <b>Density ceiling check:</b> ${atCeil} of ${dens.length} participants with 2+ people (${dens.length ? Math.round((100 * atCeil) / dens.length) : 0}%) have density = 1.<br>
       <b>Cap check:</b> ${capped} filled all ${C.N_SLOTS} boxes; ${beyond} said there was someone else they would have listed.<br>
       <b>AI instead of a person:</b> ${aiYes} of ${aiAns} who answered.</p>`;
+    const pilots = ego.filter((r) => r.session_type === "pilot");
+    if (pilots.length) {
+      const durs = describe(ego.map((r) => (r.session_duration_s === "" ? null : Number(r.session_duration_s))));
+      const cell = (v) => `<td style="text-align:left">${esc(v === undefined ? "" : v)}</td>`;
+      h += `<h3>Pilot feedback (${pilots.length} pilot participant${pilots.length > 1 ? "s" : ""})</h3>
+        <p class="small">Task duration: ${durs ? `median ${(durs.med / 60).toFixed(1)} min, range ${(durs.min / 60).toFixed(1)}–${(durs.max / 60).toFixed(1)} min` : "–"}.</p>
+        <table class="stats pf"><tr><th>code</th><th>clarity</th><th>names felt safe</th><th>length</th><th>min</th><th>confusing</th><th>uncomfortable</th><th>comments</th></tr>
+        ${pilots.map((r) => `<tr><td>${esc(r.participant_id)}</td><td>${esc(blank(r.pf_clarity))}</td><td>${esc(blank(r.pf_names_felt_safe))}</td>
+          <td>${esc(String(blank(r.pf_length)).replace(/_/g, " "))}</td><td>${r.session_duration_s === "" ? "" : (Number(r.session_duration_s) / 60).toFixed(1)}</td>
+          ${cell(r.pf_confusing)}${cell(r.pf_uncomfortable)}${cell(r.pf_comments)}</tr>`).join("")}</table>`;
+    }
     $("stats").innerHTML = h;
   }
 
@@ -395,8 +420,8 @@
   function run() {
     if (!loaded.length) return;
     $("log").textContent = $("log").textContent.split("\n").filter((l) => l.startsWith("could not")).join("\n");
-    loaded.sort((a, b) => a.fileName.localeCompare(b.fileName));
-    built = buildTables(loaded, $("incTest").checked);
+    loaded.sort((a, b) => (a.fileName < b.fileName ? -1 : a.fileName > b.fileName ? 1 : 0)); // same order as Python sorted()
+    built = buildTables(loaded, $("incTest").checked, $("incPilot").checked);
     $("results").classList.toggle("hidden", !built.ego.length);
     $("dlAll").disabled = !built.ego.length;
     if (!built.ego.length) { log("No usable files."); return; }
@@ -449,6 +474,7 @@
 
   $("files").addEventListener("change", (e) => readFiles(e.target.files));
   $("incTest").addEventListener("change", run);
+  $("incPilot").addEventListener("change", run);
   const drop = $("drop");
   ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
   ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));

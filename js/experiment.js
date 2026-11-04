@@ -24,7 +24,10 @@
 
   const out = {
     participant_id: null,
+    session_type: TEST ? "test" : null, // "real" | "pilot" | "test"
     started_at: new Date().toISOString(),
+    t0: Date.now(),
+    pilot_feedback: null,
     gen: null,       // name-generator summary (no names)
     beyond: null,    // "anyone else beyond the cap?"
     alters: {},      // code -> interpreter answers
@@ -88,7 +91,7 @@
   /* Structural fields written by the code itself, never by the participant. */
   const STRUCTURAL_KEYS = new Set([
     "trial_type", "plugin_version", "phase", "task", "task_version", "participant_id",
-    "started_at", "finished_at", "alter", "alter_i", "alter_j", "alter_codes", "name_generator_text",
+    "started_at", "finished_at", "session_type", "alter", "alter_i", "alter_j", "alter_codes", "name_generator_text",
   ]);
   function deepScrub(x, key) {
     if (key && STRUCTURAL_KEYS.has(key)) return x;
@@ -157,20 +160,28 @@
           <input type="text" id="pid" name="pid" value="${esc(url.get("pid") || "")}" spellcheck="false" autocomplete="off"></div>
         <div class="q"><label class="q-label" for="pid2">Type the code again</label>
           <input type="text" id="pid2" name="pid2" spellcheck="false" autocomplete="off"></div>
+        ${TEST ? "" : `
+        <div class="q"><span class="q-label">Session type</span>
+          <label class="opt"><input type="radio" name="stype" value="real">Real participant</label>
+          <label class="opt"><input type="radio" name="stype" value="pilot"${url.get("pilot") === "1" ? " checked" : ""}>Pilot participant
+            <span class="small">(full version; adds a short feedback page at the end; data marked as pilot)</span></label></div>`}
       </div>`,
     validate: (v) => {
       if (!v.pid || !C.PARTICIPANT_ID_PATTERN.test(v.pid))
         return { error: "Codes are 2–20 characters: letters, numbers, - or _ only." };
       if (v.pid !== v.pid2) return { error: "The two codes do not match." };
+      if (!TEST && !v.stype) return { error: "Please choose whether this is a real or a pilot session." };
       return null;
     },
-    transform: (v) => ({ participant_id: v.pid }),
+    transform: (v) => ({ participant_id: v.pid, session_type: TEST ? "test" : v.stype }),
     on_finish: (data) => {
       out.participant_id = data.response.participant_id;
+      out.session_type = data.response.session_type;
       jsPsych.data.addProperties({
         participant_id: out.participant_id,
         task: "ego_network",
         task_version: C.TASK_VERSION,
+        session_type: out.session_type,
         test_mode: TEST,
       });
     },
@@ -501,6 +512,46 @@
     },
   };
 
+  /* 7b. Pilot feedback (pilot sessions only) -------------------------------- */
+  const scaleRow = (name, labels) =>
+    `<div class="scale">${labels.map((l, i) => `<label class="opt"><input type="radio" name="${name}" value="${i + 1}">${l}</label>`).join("")}</div>`;
+  const pilotFeedback = {
+    timeline: [
+      {
+        type: jsPsychFormPage,
+        data: { phase: "pilot_feedback" },
+        html: `
+          <h2>Pilot feedback</h2>
+          <p>You took part in a <b>pilot</b> run. Your comments help us fix the task before the real study. Any question can be left blank.
+          Please don't use anyone's name in your comments.</p>
+          <div class="q"><span class="q-label">How clear were the instructions?</span>
+            ${scaleRow("clarity", ["Very unclear", "Somewhat unclear", "Okay", "Clear", "Very clear"])}</div>
+          <div class="q"><label class="q-label" for="pf1">Was any question confusing, or hard to answer?</label>
+            <input type="text" id="pf1" name="confusing" maxlength="500"></div>
+          <div class="q"><label class="q-label" for="pf2">Was any question uncomfortable to answer?</label>
+            <input type="text" id="pf2" name="uncomfortable" maxlength="500"></div>
+          <div class="q"><span class="q-label">Did the name boxes feel safe to use, knowing names are replaced by codes?</span>
+            ${scaleRow("safe", ["Not at all", "Somewhat", "Mostly", "Completely"])}</div>
+          <div class="q"><span class="q-label">How did the length of this part feel?</span>
+            ${scaleRow("length", ["Too short", "About right", "A bit long", "Much too long"])}</div>
+          <div class="q"><label class="q-label" for="pf3">Any other comments?</label>
+            <input type="text" id="pf3" name="comments" maxlength="500"></div>`,
+        transform: (v) => ({
+          pf_clarity: numOrNull(v.clarity),
+          pf_confusing: scrubText(v.confusing),
+          pf_uncomfortable: scrubText(v.uncomfortable),
+          pf_names_felt_safe: numOrNull(v.safe),
+          pf_length: v.length === null ? null : ["too_short", "about_right", "a_bit_long", "much_too_long"][Number(v.length) - 1],
+          pf_comments: scrubText(v.comments),
+        }),
+        on_finish: (data) => {
+          out.pilot_feedback = data.response;
+        },
+      },
+    ],
+    conditional_function: () => out.session_type === "pilot",
+  };
+
   /* 8. Anonymise, verify, save, wipe ---------------------------------------- */
   function buildOutput() {
     const n = ALTERS.length;
@@ -526,6 +577,8 @@
         task: "ego_network",
         task_version: C.TASK_VERSION,
         test_mode: TEST,
+        session_type: out.session_type,
+        session_duration_s: Math.round((Date.now() - out.t0) / 1000),
         started_at: out.started_at,
         finished_at: new Date().toISOString(),
         n_slots: C.N_SLOTS,
@@ -552,6 +605,7 @@
       },
       alters: alters,
       ties: out.ties.map((t) => Object.assign({ participant_id: out.participant_id }, t)),
+      pilot_feedback: out.pilot_feedback,
       trials: jsPsych.data.get().values(),
     };
   }
@@ -581,7 +635,8 @@
     ALTERS.forEach((a) => (a.name = null));
     out.names_cleared = true;
 
-    const name = `${C.FILE_PREFIX}_${out.participant_id}_${stampForFile()}.json`;
+    const tag = out.session_type === "real" ? "" : out.session_type + "_";
+    const name = `${C.FILE_PREFIX}_${tag}${out.participant_id}_${stampForFile()}.json`;
     out.saved_file = { name, text, check: result.meta.anonymisation_check };
     download(name, text);
     window.removeEventListener("beforeunload", warnUnload);
@@ -599,7 +654,7 @@
       <p>The names you typed have now been deleted from this computer. Only the codes were saved.</p>
       <p>Please let the researcher know you are done.</p>
       <div class="panel researcher small">
-        Researcher: data file <code>${esc(out.saved_file ? out.saved_file.name : "")}</code> was downloaded.
+        Researcher: <b>${esc((out.session_type || "").toUpperCase())}</b> session. Data file <code>${esc(out.saved_file ? out.saved_file.name : "")}</code> was downloaded.
         Anonymisation check: <b>${esc(out.saved_file ? out.saved_file.check : "")}</b>; names cleared from memory: <b>${out.names_cleared ? "yes" : "no"}</b>.
         <button class="jspsych-btn" id="redl">Download again</button>
       </div>`,
@@ -619,6 +674,7 @@
     ...interpreters,
     tiesPage,
     aiPage,
+    pilotFeedback,
     save,
     exitFullscreen,
     finalScreen,

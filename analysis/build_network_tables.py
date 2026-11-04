@@ -10,8 +10,10 @@ Writes
   ego_summary.csv  one row per participant: size, density, composition,
                    tie strength, and the AI / language measures
 
-Only the Python standard library is used. Test-mode files (?test=1) are skipped
-unless --include-test is given.
+Only the Python standard library is used. Pilot sessions are skipped unless
+--include-pilot is given, and test-mode files (?test=1) unless --include-test,
+so real data are never mixed with either. For pilot files, ego_summary.csv also
+carries session_duration_s and the pilot feedback (pf_* columns).
 
 Definitions (fix these in the pre-registration before looking at the data):
   size              number of people named (0-6)
@@ -59,6 +61,7 @@ def main():
     ap.add_argument("data_dir")
     ap.add_argument("-o", "--out", default=".")
     ap.add_argument("--include-test", action="store_true")
+    ap.add_argument("--include-pilot", action="store_true")
     args = ap.parse_args()
 
     files = sorted(glob.glob(os.path.join(args.data_dir, "egonet_*.json")))
@@ -74,8 +77,12 @@ def main():
         with open(fn, encoding="utf-8") as f:
             d = json.load(f)
         meta, ego = d["meta"], d["ego"]
-        if meta.get("test_mode") and not args.include_test:
+        stype = meta.get("session_type") or ("test" if meta.get("test_mode") else "real")
+        if (meta.get("test_mode") or stype == "test") and not args.include_test:
             print(f"skip (test mode): {os.path.basename(fn)}")
+            continue
+        if stype == "pilot" and not args.include_pilot:
+            print(f"skip (pilot): {os.path.basename(fn)}")
             continue
         if meta.get("anonymisation_check") != "passed":
             print(f"WARNING: anonymisation check did not pass in {fn}: open it and inspect before use")
@@ -108,6 +115,7 @@ def main():
 
         row = {
             "participant_id": pid,
+            "session_type": stype,
             "file": os.path.basename(fn),
             "size": n,
             "all_slots_used": ego.get("all_slots_used"),
@@ -138,6 +146,8 @@ def main():
             "n_alters_named_like_ai": sum(bool(a.get("name_flag_ai_keyword")) for a in alters),
             "n_alters_rel_ai": sum(a.get("relationship") == "ai" for a in alters),
         }
+        row["session_duration_s"] = blank(meta.get("session_duration_s"))
+        row["_pf"] = d.get("pilot_feedback") or {}
         row["_rels"] = Counter(a["relationship"] for a in alters if a.get("relationship"))
         ego_rows.append(row)
 
@@ -146,10 +156,15 @@ def main():
         c = r.pop("_rels")
         for cat in sorted(rel_cats):
             r[f"n_rel_{cat}"] = c.get(cat, 0)
+        for k, v in r.pop("_pf").items():  # pilot feedback last
+            r[k] = blank(v)
 
     def write(name, rows, cols=None):
         path = os.path.join(args.out, name)
-        cols = cols or (list(rows[0].keys()) if rows else [])
+        if cols is None:  # union of keys, first-seen order (pilot rows add pf_* columns)
+            cols = []
+            for r in rows:
+                cols += [k for k in r if k not in cols]
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
             w.writeheader()

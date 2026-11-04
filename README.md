@@ -28,6 +28,15 @@ GitHub Pages also works, since data are still saved only to the lab computer.
 (in Chrome, enhanced spell check sends typed text to Google). The name boxes already set `autocomplete="off"` and
 `spellcheck="false"`, but the browser settings are the safer layer.
 
+
+## Pilot sessions
+
+Tick **Pilot participant** on the setup screen (or open `index.html?pilot=1` to pre-select it). The pilot runs the full version with real
+timings. It adds a short feedback page at the end (clarity, anything confusing, length, comments, anything uncomfortable, and whether the name boxes felt safe), names the file
+`egonet_pilot_<code>_…`, and records `session_type = pilot` and the session duration. Pilot files are skipped by `analyze.html` and the
+Python script unless you ask for them (checkbox / `--include-pilot`); the analysis page then shows a pilot feedback table and durations.
+Real sessions are marked `session_type = real`. **See `PILOT.md` for the full run sheet.**
+
 ---
 
 ## What the participant sees
@@ -135,6 +144,7 @@ and a name typed inside another answer): no name survived into any saved file.
 ## Files
 
 ```
+PILOT.md                         pilot run sheet (both tasks)
 index.html                       entry point (the task)
 analyze.html                     analysis page: tables + network diagrams, zip download
 config.js                        ← wording, answer options, slots

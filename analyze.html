@@ -20,6 +20,7 @@
     .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
     .card svg { width: 100%; height: auto; display: block; }
     .card .small a { margin-right: 10px; }
+    table.stats.pf th, table.stats.pf td { text-align: left; vertical-align: top; }
     #log { white-space: pre-wrap; font-size: 0.85em; color: var(--warn); }
     .hidden { display: none; }
   </style>
@@ -37,6 +38,7 @@
     <input type="file" id="files" accept=".json,application/json" multiple>
   </div>
   <div class="row">
+    <label class="small"><input type="checkbox" id="incPilot"> include pilot sessions</label>
     <label class="small"><input type="checkbox" id="incTest"> include test-mode files (<code>?test=1</code>)</label>
     <button class="jspsych-btn btn-primary" id="dlAll" disabled>Download tables + diagrams (.zip)</button>
   </div>
