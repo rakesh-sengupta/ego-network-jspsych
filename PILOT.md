@@ -14,7 +14,7 @@ page, and the files are named and flagged as pilot so they never mix with real d
 - [ ] **IRB.** The application allows a pilot of about 10 participants. The trust game has since changed to three rounds with one played
   out, and pilot feedback questions were added. Check with the committee whether the amendment must be approved **before** piloting.
 - [ ] Pilot participants sign the **same consent form** as real participants.
-- [ ] Fill in `SUPPORT_CONTACTS` in `config.js` (trust game). The setup screen shows a red banner until this is done.
+- [x] Support contacts are built into both tasks (last screen). Check them once before the first session.
 - [ ] Lab computer: Chrome or Edge; a browser profile with **autofill off** and **"Enhanced spell check" off**; Downloads folder empty.
 - [ ] Open both `index.html` files once to check they load (no internet is needed).
 - [ ] Prepare a code list: pilot codes **PIL01, PIL02, …**, kept separate from real codes (P001, …).

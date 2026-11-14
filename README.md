@@ -50,7 +50,7 @@ Real sessions are marked `session_type = real`. **See `PILOT.md` for the full ru
 | 5 | **One page per person** | relationship (12 categories incl. *An AI chatbot or assistant*), contact frequency (5-point), closeness (5-point), main language used with them |
 | 6 | **Do these people know each other?** *(if ≥ 2 named)* | every pair on one page, Yes / No / Not sure, with a live diagram that draws the ties as they answer |
 | 7 | **AI chatbots** | how often they discuss personal / important matters with an AI chatbot; closeness to the one they use most; language used with it; and "have you talked something over with an AI chatbot *instead of* any of these people?" (tick each person, or "none") |
-| 8 | Thank-you | |
+| 8 | Thank-you + support contacts | Krea counselling, YourDOST, 24×7 helpline, well-being email (`SUPPORT` in `config.js`) |
 
 Every question can be skipped (as the IRB application promises). A blank triggers one soft
 *"You left 1 question blank — go back or continue?"* so that blanks are deliberate, not accidental.

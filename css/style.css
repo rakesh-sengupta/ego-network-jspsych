@@ -100,3 +100,5 @@ td.tie-opts .opt { margin: 0; padding: 4px 8px; }
 .opts-grid .opt { margin: 1px 0; }
 .opts-grid .inline-text { min-width: 9em; width: 9em; }
 input.amount-input { width: 7em; font-size: 1.6em; text-align: center; font-weight: 600; padding: 6px; }
+.panel.support h3 { font-size: 1em; margin: 0.9em 0 0.2em; }
+.panel.support ul { margin: 0.2em 0 0.4em; padding-left: 1.3em; }

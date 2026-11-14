@@ -138,6 +138,20 @@
     };
   };
 
+
+  /* Support contacts block (from CONFIG.SUPPORT) */
+  function supportHTML() {
+    const S = C.SUPPORT;
+    return `<div class="panel support">
+        <p><b>If anything in today's session has left you feeling uncomfortable, support is available.</b> ${esc(S.INTRO)}</p>
+        ${S.SECTIONS.map((sec) => `
+          <h3>${esc(sec.title)}</h3>
+          ${sec.note ? `<p class="small">${esc(sec.note)}</p>` : ""}
+          ${sec.items.length ? `<ul>${sec.items.map((i) => "<li>" + esc(i) + "</li>").join("")}</ul>` : ""}`).join("")}
+        <p class="small">Questions about the study: ${esc(C.RESEARCHER)}; supervisor ${esc(C.SUPERVISOR)}.</p>
+      </div>`;
+  }
+
   /* ---------- jsPsych ---------- */
   const jsPsych = initJsPsych({ display_element: "jspsych-target" });
 
@@ -653,6 +667,7 @@
       <h2>Thank you, you have finished this part</h2>
       <p>The names you typed have now been deleted from this computer. Only the codes were saved.</p>
       <p>Please let the researcher know you are done.</p>
+      ${supportHTML()}
       <div class="panel researcher small">
         Researcher: <b>${esc((out.session_type || "").toUpperCase())}</b> session. Data file <code>${esc(out.saved_file ? out.saved_file.name : "")}</code> was downloaded.
         Anonymisation check: <b>${esc(out.saved_file ? out.saved_file.check : "")}</b>; names cleared from memory: <b>${out.names_cleared ? "yes" : "no"}</b>.

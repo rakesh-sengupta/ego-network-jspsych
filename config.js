@@ -83,6 +83,46 @@ const CONFIG = {
     "pi", "grok", "deepseek", "chatbot", "bot", "siri", "alexa",
   ],
 
+  /* ---- Contacts ------------------------------------------------------------ */
+  RESEARCHER: "Archana Namboodiri (archana_namboodiri.sias23@krea.ac.in)",
+  SUPERVISOR: "Dr Rakesh Sengupta (rakesh.sengupta@krea.edu.in)",
+  /* ---- Support contacts shown at the end of the task ----------------------
+     Plain text only (no links), so nothing on the screen takes the participant
+     out of the task. Edit here if a contact changes. */
+  SUPPORT: {
+    INTRO:
+      "All mental health services listed below are free of charge for Krea students. " +
+      "Conversations remain confidential within professional and legal ethical guidelines.",
+    SECTIONS: [
+      {
+        title: "On-campus counselling",
+        note: "Counselling psychologists for stress, anxiety, low mood, relationships, grief, life transitions and overall emotional well-being. Book an appointment by email.",
+        items: [
+          "Ms. Aparna Raghavan: c-aparna.raghavan@krea.edu.in (all weekdays)",
+          "Mr. Athul Raj: athul.raj@krea.edu.in (11:00 AM–7:00 PM; week 1 Monday–Friday, week 2 Tuesday–Saturday)",
+        ],
+      },
+      {
+        title: "YourDOST counselling",
+        note: "Log in to the YourDOST portal with your Krea University credentials. For help booking, use the chat/message feature on the platform.",
+        items: [],
+      },
+      {
+        title: "24×7 helpline and chat",
+        note: "",
+        items: [
+          "YourDOST 24×7 helpline: 08047097654",
+          "24×7 chat support on the YourDOST platform, using your Krea email ID",
+        ],
+      },
+      {
+        title: "Other questions about well-being support at Krea",
+        note: "",
+        items: ["mental.wellbeing@krea.edu.in"],
+      },
+    ],
+  },
+
   /* ---- Data ---------------------------------------------------------------
      One JSON file per participant is downloaded at the end. Names are replaced
      by codes (A1…A6) before the file is built, and are never written to disk. */
