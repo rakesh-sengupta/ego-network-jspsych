@@ -23,11 +23,16 @@
     spoke: "#b9b8b2",
     surface: "#ffffff",
   };
+  const SHORT_REL = {
+    partner: "partner", parent: "parent", sibling: "sibling", other_family: "other family", friend: "friend",
+    roommate: "roommate", classmate: "classmate", teacher: "teacher/mentor", coworker: "co-worker",
+    online_only: "online friend", ai: "AI chatbot", other: "other",
+  };
   const PEERS = new Set(["partner", "friend", "roommate", "classmate", "online_only"]);
   const groupOf = (rel) => (!rel ? "other" : REL[rel] && REL[rel].kin ? "family" : PEERS.has(rel) ? "peers" : "other");
   const GROUP_LABEL = { family: "Family", peers: "Partner, friends & peers", other: "Other / not answered" };
 
-  const DW = 600, DH = 560; // diagram size (px)
+  const DW = 660, DH = 560; // diagram size (px)
 
   const ALTER_COLS = [
     "participant_id", "alter", "slot", "relationship", "relationship_other", "kin",
@@ -227,14 +232,16 @@
       const p = pos[a.alter];
       const g = groupOf(a.relationship);
       const relLabel = a.relationship ? (a.relationship === "other" && a.relationship_other ? a.relationship_other : (REL[a.relationship] || {}).label || a.relationship) : "not answered";
+      const relShort = a.relationship ? (a.relationship === "other" && a.relationship_other ? a.relationship_other : SHORT_REL[a.relationship] || a.relationship) : "not answered";
       const tip = `${a.alter}: ${relLabel}\ncloseness: ${blank(a.closeness) || "–"}\ncontact: ${CONTACT[a.contact] || "–"}\nlanguage: ${LANG[a.language] || a.language_other || a.language || "–"}${a.ai_instead ? "\nAI used instead: yes" : ""}`;
       s += `<g><title>${esc(tip)}</title>`;
       s += `<circle cx="${p.x}" cy="${p.y}" r="15" fill="${COL[g]}" stroke="${COL.surface}" stroke-width="2"/>`;
       // label outside the node, radially
       const lx = cx + (R + 34) * Math.cos(p.t), ly = cy + (R + 34) * Math.sin(p.t);
       const anchor = Math.abs(Math.cos(p.t)) < 0.3 ? "middle" : Math.cos(p.t) > 0 ? "start" : "end";
-      const short = relLabel.length > 18 ? relLabel.slice(0, 17) + "…" : relLabel;
-      const langShort = LANG[a.language] ? LANG[a.language].replace(/ \(.*$/, "").replace("A mix of languages, with no main one", "mixed") : a.language_other || "";
+      const short = relShort.length > 16 ? relShort.slice(0, 15) + "…" : relShort;
+      const langRaw = a.language === "other" ? a.language_other || "other" : a.language === "mixed" ? "mixed" : LANG[a.language] || a.language || "";
+      const langShort = langRaw.length > 12 ? langRaw.slice(0, 11) + "…" : langRaw;
       s += `<text x="${lx}" y="${ly - 3}" font-size="12" font-weight="600" text-anchor="${anchor}" fill="${COL.ink}">${esc(a.alter)}</text>`;
       s += `<text x="${lx}" y="${ly + 11}" font-size="10.5" text-anchor="${anchor}" fill="${COL.ink2}">${esc(short)}${langShort ? " · " + esc(langShort) : ""}</text></g>`;
     });

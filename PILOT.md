@@ -4,15 +4,15 @@ The pilot uses the **full version** of both tasks, with real timings and every s
 The only differences: the researcher ticks **Pilot participant** on the setup screen, each task ends with a short **pilot feedback**
 page, and the files are named and flagged as pilot so they never mix with real data.
 
-> **Do not use `?test=1` for the pilot.** Test mode shortens all the waiting screens in the trust game, which is exactly what the pilot
-> needs to check.
+> **Do not use `?test=1` for the pilot.** Test mode marks the files as test data and shortens the short pauses; the pilot should run
+> exactly as real sessions will.
 
 ---
 
 ## Before the first pilot session
 
-- [ ] **IRB.** The application allows a pilot of about 10 participants. The trust game has since changed to three rounds with one played
-  out, and pilot feedback questions were added. Check with the committee whether the amendment must be approved **before** piloting.
+- [ ] **IRB.** The trust game is now version 3: Person A rounds, a Person B part, matching after the study, and no deception. Make
+  sure the protocol describes this version.
 - [ ] Pilot participants sign the **same consent form** as real participants.
 - [x] Support contacts are built into both tasks (last screen). Check them once before the first session.
 - [ ] Lab computer: Chrome or Edge; a browser profile with **autofill off** and **"Enhanced spell check" off**; Downloads folder empty.
@@ -29,16 +29,16 @@ page, and the files are named and flagged as pilot so they never mix with real d
 | 2 | Questionnaires (AI use, GTS, UCLA, SIAS) | On whatever platform they are run on; same participant code |
 | 3 | **Network task**: `ego-network-jspsych/index.html` | Setup: code ×2 → **Pilot participant** → hand over |
 | 4 | Check-in and short break | Note anything the participant says |
-| 5 | **Trust game**: `trust-game-jspsych/index.html` | Setup: code ×2 → **Pilot participant** → order number → hand over. Don't hint that partners are simulated |
-| 6 | Verbal debrief | The task's debrief screen comes first; then talk it through |
+| 5 | **Trust game**: `trust-game-jspsych/index.html` | Setup: code ×2 → **Pilot participant** → order number → hand over. Part 1 as Person A, Part 2 as Person B. Nothing is hidden: answer questions honestly |
+| 6 | Short chat | The task's "that's the game" screen explains it; ask how it went and answer questions |
 | 7 | Support sheet + contacts | As for real participants |
 
 After each task, check the last screen. It should say **PILOT session** and show the file name (`egonet_pilot_PIL01_…json`,
 `trustgame_pilot_PIL01_…csv`); the network task should also show **Anonymisation check: passed**.
 Move both files to the encrypted storage, into a **`pilot/`** folder.
 
-**Write down** for each participant: total session time, any question they asked during the tasks, anything that seemed to break
-the cover story, and how they reacted to the debrief.
+**Write down** for each participant: total session time, any question they asked during the tasks, anything that seemed confusing
+in Part 2 (Person B), and anything that seemed unclear in the matching explanation.
 
 ## After the pilot
 
@@ -48,7 +48,7 @@ Open each task's `analyze.html`, tick **include pilot sessions**, and load the p
 |---|---|---|
 | Task durations | Pilot feedback section (both pages) | Whole session much over the time stated in the consent form |
 | Comprehension attempts | Trust summary table | Many people needed 2+ tries, so rewrite the instructions page they tripped on |
-| Belief that partners were real | Trust belief chart + "felt less real" comments | Many ratings ≤ 3, so strengthen the cover story (waits, wording) before real data |
+| Person B answers | Trust summary + "proportion returned" chart + Part 2 comments | Many blanks, odd patterns or confusion, so reword the Part 2 page |
 | Same proportion every round | Trust summary line | Nearly everyone, so the amounts may not be distinct enough |
 | Density = 1 (ceiling) | Network ceiling check | Most participants, so pre-register the ceiling as a known limitation (deck slide 16) |
 | All 6 boxes used / "more beyond cap" | Network cap check | Often, so consider raising `N_SLOTS` (an IRB amendment) |

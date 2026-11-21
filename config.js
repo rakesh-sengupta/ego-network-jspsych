@@ -4,7 +4,7 @@
    ========================================================================== */
 const CONFIG = {
   STUDY_TITLE: "Emotional Use of AI Chatbots and Human Social Trust",
-  TASK_VERSION: "1.0.0",
+  TASK_VERSION: "1.0.1",
 
   /* ---- Name generator ----------------------------------------------------
      Keep the wording fixed once it is pre-registered: network size and

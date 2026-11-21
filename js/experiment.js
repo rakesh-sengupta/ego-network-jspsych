@@ -205,6 +205,7 @@
     type: jsPsychFullscreen,
     fullscreen_mode: true,
     data: { phase: "fullscreen_on" },
+    on_finish: () => { out.t0 = Date.now(); }, // task duration counts from here, not from page load
     message: `<div class="panel researcher center"><p><b>Researcher:</b> please hand the computer to the participant now.</p></div>
       <p class="center">When you are ready, press the button below. The screen will switch to full-screen mode.</p>`,
     button_label: "Begin",
@@ -624,26 +625,30 @@
     };
   }
 
+  /* Every participant-facing string VALUE in the output (keys are written by the
+     code and never contain participant text, so they are not checked). */
+  function checkableValues(x, key, out = []) {
+    if (key && STRUCTURAL_KEYS.has(key)) return out;
+    if (typeof x === "string") { if (!CONTROLLED.has(x)) out.push(x); }
+    else if (Array.isArray(x)) x.forEach((v) => checkableValues(v, null, out));
+    else if (x && typeof x === "object") Object.keys(x).forEach((k) => checkableValues(x[k], k, out));
+    return out;
+  }
+  const leaksIn = (obj) => {
+    const vals = checkableValues(obj);
+    return namePatterns().filter((p) => vals.some((v) => { p.re.lastIndex = 0; return p.re.test(v); }));
+  };
+
   function anonymiseAndSave() {
-    // (a) build from coded data, (b) independent scrub of every string, (c) verify.
+    // (a) build from coded data, (b) independent scrub of every string value, (c) verify values.
+    // v1.0.0 also searched key names, so a one-letter initial such as "S" matched the "s" in
+    // "session_duration_s" and the fallback renamed that key (PIL04). Keys are no longer touched.
     let result = deepScrub(buildOutput());
-    let text = JSON.stringify(result, null, 2);
-    const leaks = namePatterns().filter((p) => {
-      p.re.lastIndex = 0;
-      return p.re.test(
-        // ignore controlled-vocabulary values when checking (e.g. a person nicknamed "Friend")
-        JSON.stringify(result, (k, v) =>
-          (k && STRUCTURAL_KEYS.has(k)) || (typeof v === "string" && CONTROLLED.has(v)) ? undefined : v)
-      );
-    });
+    let leaks = leaksIn(result);
+    if (leaks.length) result = deepScrub(result); // second pass (should never be needed)
+    leaks = leaksIn(result);
     result.meta.anonymisation_check = leaks.length === 0 ? "passed" : "FAILED";
-    if (leaks.length) {
-      // Should be unreachable; as a last resort replace in the serialised text.
-      text = JSON.stringify(result, null, 2);
-      leaks.forEach((p) => (text = text.replace(p.re, "[" + p.code + "]")));
-    } else {
-      text = JSON.stringify(result, null, 2);
-    }
+    const text = JSON.stringify(result, null, 2);
 
     // Wipe names from memory before anything else happens.
     ALTERS.forEach((a) => (a.name = null));
